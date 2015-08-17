@@ -3,7 +3,7 @@ RWStructuredBuffer<forceData> rwForceBuffer : BACKBUFFER;
 
 int groupId = -1;
 
-float4x4 tVP;
+float4x4 tW : WORLD;
 
 SamplerState volumeSampler // : IMMUTABLE
 {
@@ -27,16 +27,11 @@ void CS_Apply( uint3 i : SV_DispatchThreadID)
 	
 	if(Apply){
 		
-		float4 p = mul(float4(rwForceBuffer[i.x].position,1), tVP);
+		float4 p = mul(float4(rwForceBuffer[i.x].position,1), tW);
+		float4 force =  VolumeTexture3D.SampleLevel(volumeSampler,((p.xyz) + 0.5 ),0) * float4(fieldPower,1);
 		
-		float4 c =  VolumeTexture3D.SampleLevel(volumeSampler,((p.xyz+1)/2),0);
-		//p =(c.xyz)*fieldPower;
-		p =c*float4(fieldPower,1);
-		
-		if ( groupId == -1 || rwForceBuffer[i.x].groupId == groupId){
-			
-			rwForceBuffer[i.x].acceleration += p.xyz*.0005;
-			
+		if ( groupId == -1 || rwForceBuffer[i.x].groupId == groupId){			
+			rwForceBuffer[i.x].acceleration += force.xyz;
 		}
 		
 	}
