@@ -73,7 +73,7 @@ vs2ps VS_SPRITE(vsInput input)
 	output.pos =  mul(finalPos, tWVP);
 
 	output.col = pcBuffer[idx].col;
-	output.col_pos.xyz = pcBuffer[idx].pos;
+	output.col_pos.xyz = lerp(0,1,pcBuffer[idx].pos)*float3(1,10000,1);
 	output.col_group = randColor(pcBuffer[idx].groupId);
 	output.TexCd = input.TexCd;
 	return output;
@@ -97,6 +97,11 @@ float4 PS_COLORTEXTURE(vs2ps input): SV_Target
 	return col * rgb;
 }
 
+float4 PS_POS(vs2ps input): SV_Target
+{
+	return input.col_pos+float4(0,0,0,1);
+}
+
 /* ===================== TECHNIQUE ===================== */
 
 technique10 Rgb
@@ -114,5 +119,14 @@ technique10 Color
 	{
 		SetVertexShader( CompileShader( vs_4_0, VS_SPRITE() ) );
 		SetPixelShader( CompileShader( ps_4_0, PS_TEXTURE() ) );
+	}
+}
+
+technique10 Position
+{
+	pass P0
+	{
+		SetVertexShader( CompileShader( vs_4_0, VS_SPRITE() ) );
+		SetPixelShader( CompileShader( ps_4_0, PS_POS() ) );
 	}
 }
